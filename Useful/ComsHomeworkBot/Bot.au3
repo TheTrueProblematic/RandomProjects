@@ -1,11 +1,11 @@
 #include <MsgBoxConstants.au3>
-$nTimes = 1000
+$nTimes = 100
 
 For $c = 0 To $nTimes Step 1
 
-$wWindow = "Chapter 12. Organizing And Finding Support For Your Speech and 8 more pages - Personal - Microsoft Edge"
+$wWindow = "Connect - Personal - Microsoft Edge"
 
-$nNumber = Random(0,4,1)
+$nNumber = Random(0,3,1)
 
 For $i = 0 To $nNumber Step 1
 

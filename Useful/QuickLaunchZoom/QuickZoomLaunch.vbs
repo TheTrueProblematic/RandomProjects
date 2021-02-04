@@ -8,6 +8,9 @@ friday = 6
 saturday = 7
 hr = Hour(Time)
 min = Minute(Time)
+If min<1 Then
+min = min+1
+End If
 tim = hr&":"&min
 
 ' MsgBox(tim)
