@@ -22,6 +22,8 @@ EndIf
 
 Send("^{TAB}")
 
-Sleep(500)
+$nNumber = Random(500,2000,1)
+
+Sleep($nNumber)
 
 next
