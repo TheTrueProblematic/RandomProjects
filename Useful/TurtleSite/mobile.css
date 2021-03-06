@@ -1,0 +1,84 @@
+html{
+    height:100%;
+    background-color: #000000;
+}
+    body {
+        background-image:url('background.png');
+        font-family: 'Roboto', sans-serif;
+        background-size:cover;
+        background-repeat:no-repeat;
+        height:100%;
+        max-width: 100%;
+        overflow-x: hidden;
+        overflow-y: hidden;
+    }
+    h1{
+      position:absolute;
+      width:95vw;
+      height: 10vh;
+      top: 0;
+      left:2.5vw;
+      background-image: linear-gradient(#404040DD,#616161DD);
+      font-family: 'Roboto', sans-serif;
+      font-size: 7vh;
+      color: #000000;
+      /* text-shadow: 0px 1px #ffffff; */
+      text-align: center;
+      vertical-align: center;
+    }
+    div{
+      position: absolute;
+      top: 60vh;
+      right:80vw;
+      height: 20vw;
+      z-index: 1000;
+    }
+    video{
+      background-color:#000000;
+      position: absolute;
+      top: 25vh;
+      height: auto;
+      width: 80vw;
+      right: 10vw;
+    }
+    button{
+
+    }
+    #down{
+      position:absolute;
+      height:10vh;
+      width:50vw;
+      font-size: 3.5vw;
+      z-index: 1000;
+      background-image: url('redBack.jpg');
+      background-size: cover;
+      color: #ffffff;
+      text-shadow: 1px 1px #000000;
+    }
+    a{
+      color:magenta;
+    }
+    a:visited{
+      color:red;
+    }
+    #downlnk{
+      position:absolute;
+      bottom:30vh;
+      right:75vw;
+      z-index: 1000;
+    }
+    #donolnk{
+      font-size: 4vw;
+      /* text-decoration: none; */
+    }
+    span{
+
+    }
+    #dono{
+      position:absolute;
+      bottom:10vh;
+      left:0vw;
+      width:100vw;
+      text-align:center;
+      color:magenta;
+    }
