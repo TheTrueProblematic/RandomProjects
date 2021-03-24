@@ -1,5 +1,5 @@
 #include <MsgBoxConstants.au3>
-$nTimes = 100
+$nTimes = 1000
 
 For $c = 0 To $nTimes Step 1
 
