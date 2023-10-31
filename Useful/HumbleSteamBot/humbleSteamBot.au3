@@ -6,7 +6,7 @@ $t = $t-1
 
 For $i = 0 To $t Step 1
 
-Local $aCoord = PixelSearch (0,100,2500,1400, 0x767676, 0, 1)
+Local $aCoord = PixelSearch (0,100,2500,1400, 0x4f4f4f, 0, 1)
 If Not @error Then
 $x = $aCoord[0]
 $y = $aCoord[1]
