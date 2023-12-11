@@ -19,7 +19,7 @@ for c in range(100000):
         plon = plan('test')
         price = plon.runPlan(locations)
 
-        if (price<finPrice) and (price>290):
+        if (price<finPrice) and (price>296):
                 order = strin
                 finPrice = price
 

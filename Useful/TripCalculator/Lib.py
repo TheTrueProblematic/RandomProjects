@@ -50,7 +50,7 @@ class plan:
                 pric = -1
         elif l1 == 'Madrid':
             if l2 == 'Paris':
-                pric = 22
+                pric = 54.5
             elif l2 == 'London':
                 pric = 20
             elif l2 == 'Venice':
