@@ -3,8 +3,12 @@ import os
 import random
 import psutil
 import time
+import boto3
+from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+
+NotificationLevel = 3
 
 def find_text_after_search(search, text):
     # Find the start of the search term in the text
@@ -103,11 +107,11 @@ def renameFile(folder_path, name):
 def completed(success, title):
     if success:
         print("Completed successfully.")
-        notify(True, title, 1)
+        notify(True, title, NotificationLevel)
         awaitNew()
     else:
         print("Failed to complete successfully.")
-        notify(False, title, 1)
+        notify(False, title, NotificationLevel)
         awaitNew()
 
 def processFile():
@@ -132,8 +136,8 @@ def processFile():
 
     os.makedirs(workFold, exist_ok=True)
 
-    # ripAll = '"C:/Program Files (x86)/MakeMKV/makemkvcon64.exe" mkv disc:0 all ' + workFold
-    ripAll = '"C:/Program Files (x86)/MakeMKV/makemkvcon64.exe" mkv disc:0 all --minlength=5000 --progress=1 --out="'+workFold+'"'
+    ripAll = '"C:/Program Files (x86)/MakeMKV/makemkvcon64.exe" mkv disc:0 all ' + workFold
+    # ripAll = '"C:/Program Files (x86)/MakeMKV/makemkvcon64.exe" mkv disc:0 all --minlength=5000 --progress=1 --out="'+workFold+'"'
 
 
     result2 = subprocess.run(ripAll, shell=True, text=True, capture_output=True)
@@ -216,50 +220,51 @@ def notify(status, title, level):
     #Will send everyone a status at 1, just matt at 2 and just max at 3
 
     matt = '7203014754@tmomail.net'
-    max = '7206447060@vtext.net'
+    maxn = '7206447060@vtext.com'
     succ = title+" was ripped successfully!"
     fail = title+" failed."
 
     if level==1:
         if status:
-            send_email_aws_ses(succ,"", matt)
-            send_email_aws_ses(succ, "", max)
+            send_email_aws_ses(succ,"Status: ", matt)
+            send_email_aws_ses(succ, "Status: ", maxn)
         else:
-            send_email_aws_ses(fail, "", matt)
-            send_email_aws_ses(fail, "", max)
+            send_email_aws_ses(fail, "Status: ", matt)
+            send_email_aws_ses(fail, "Status: ", maxn)
 
     elif level==2:
         if status:
-            send_email_aws_ses(succ, "", matt)
+            send_email_aws_ses(succ, "Status: ", matt)
         else:
-            send_email_aws_ses(fail, "", matt)
+            send_email_aws_ses(fail, "Status: ", matt)
 
     elif level==3:
         if status:
-            send_email_aws_ses(succ, "", max)
+            send_email_aws_ses(succ, "Status: ", maxn)
         else:
-            send_email_aws_ses(fail, "", max)
+            send_email_aws_ses(fail, "Status: ", maxn)
 
 
 def main():
     # Path to monitor
     drive_letter = 'D:'
-    event_handler = DiskHandler()
-    observer = Observer()
-    observer.schedule(event_handler, drive_letter, recursive=False)
-    observer.start()
+
+    print("Monitoring started. Waiting for disk insertion...")
 
     try:
+        # Continuously check if the drive is a Blu-ray drive and is ready
         while True:
-            # Check if the drive is a Blu-ray drive
             if is_bluray_drive(drive_letter):
-                print(f"{drive_letter} is a Blu-ray drive and is ready.")
+                print(f"{drive_letter} is a Blu-ray drive and is ready. Processing disk...")
+                processFile()
+                print("Waiting for next disk...")
             else:
-                print(f"{drive_letter} is not available.")
+                print(f"{drive_letter} is not available. Checking again in 10 seconds.")
             time.sleep(10)
     except KeyboardInterrupt:
-        observer.stop()
-    observer.join()
+        print("Monitoring interrupted by user.")
+    finally:
+        print("Monitoring stopped.")
 
 if __name__ == "__main__":
     main()
