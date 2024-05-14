@@ -1,4 +1,3 @@
-# Import Module
 from tkinter import *
 import time
 
@@ -32,8 +31,10 @@ def start():
 # function to handle Stop button click
 def stop():
     global status
+    global launchTime
     status = 1
     update_status()
+    print(time.time()-launchTime)
 
 # function to update the status message
 def update_status():
@@ -91,6 +92,7 @@ root.grid_rowconfigure(2, weight=1)
 
 # Initialize status variable
 status = 1
+launchTime = time.time()
 update_status()
 
 # Execute Tkinter
