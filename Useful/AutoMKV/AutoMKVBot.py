@@ -1,4 +1,10 @@
 import subprocess
+import os
+import random
+import psutil
+import time
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 
 def find_text_after_search(search, text):
     # Find the start of the search term in the text
@@ -19,30 +25,241 @@ def find_text_after_search(search, text):
     # Return the substring between the end of search term and the double quote
     return text[start_index:end_index]
 
+def randDelete(folder_path):
+    # Get the list of all files in the folder
+    files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
 
-loc = 'S:/Shared/MoviesTBC'
+    # Check if there is more than one file in the folder
+    if len(files) <= 1:
+        print("ERROR: The folder must contain more than one file.")
+        completed(False)
+        return
 
-driveCmd = '"C:/Program Files (x86)/MakeMKV/makemkvcon64.exe" -r info disk:0'
+    # Randomly select one file to keep
+    file_to_keep = random.choice(files)
+    print(f"Keeping file: {file_to_keep}")
 
-result = subprocess.run(driveCmd, shell=True, text=True, capture_output=True)
+    # Delete all other files in the folder
+    for file in files:
+        if file != file_to_keep:
+            file_path = os.path.join(folder_path, file)
+            os.remove(file_path)
+            print(f"Deleted file: {file}")
+def deleteSpares(path):
+    # List all files in the given directory
+    try:
+        files = [os.path.join(path, file) for file in os.listdir(path) if os.path.isfile(os.path.join(path, file))]
+    except FileNotFoundError:
+        print("The specified path does not exist.")
+        return 0
 
-fullTxt = result.stdout
+    if len(files) == 1:
+        # Only one file in the folder, do nothing
+        return 1
+    elif len(files) > 1:
+        # Find the largest file by size
+        largest_files = sorted(files, key=lambda x: os.path.getsize(x), reverse=True)
+        max_size = os.path.getsize(largest_files[0])
 
-print("Drive List:")
-print(result.stdout)
+        # Filter out files that are the largest if there are multiple
+        largest_files = [file for file in largest_files if os.path.getsize(file) == max_size]
 
-searchTerm = '338","'
+        # Delete all other files
+        files_to_delete = [file for file in files if file not in largest_files]
+        for file in files_to_delete:
+            os.remove(file)
 
-title = find_text_after_search(searchTerm, fullTxt)
+        return len(largest_files)
 
-workFold = loc + '/' + title
+def awaitNew():
+    print("Processing complete. Waiting for disk to be ejected...")
+    drive_letter = 'D:'
+    while is_bluray_drive(drive_letter):
+        time.sleep(5)  # Check every 5 seconds
+    print("Disk ejected. Ready for a new disk.")
 
-os.makedirs(workFold, exist_ok=True)
+def renameFile(folder_path, name):
+    # Check if the given path is a directory
+    if not os.path.isdir(folder_path):
+        return False
 
-ripAll = '"C:/Program Files (x86)/MakeMKV/makemkvcon64.exe" mkv disc:0 all ' + workFold
+    # List all files in the folder
+    files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
 
-result2 = subprocess.run(ripAll, shell=True, text=True, capture_output=True)
+    # Check if there is exactly one file in the folder
+    if len(files) != 1:
+        return False
 
-print("Rip Report:")
-print(result2.stdout)
+    # Get the full path of the single file
+    file_path = os.path.join(folder_path, files[0])
+    # Create the new file path with the given name
+    new_file_path = os.path.join(folder_path, name)
 
+    # Rename the file
+    os.rename(file_path, new_file_path)
+
+    return True
+
+def completed(success, title):
+    if success:
+        print("Completed successfully.")
+        notify(True, title, 1)
+        awaitNew()
+    else:
+        print("Failed to complete successfully.")
+        notify(False, title, 1)
+        awaitNew()
+
+def processFile():
+    print("Disk inserted. Processing files...")
+
+    loc = 'T:/Shared/MoviesTBC'
+
+    driveCmd = '"C:/Program Files (x86)/MakeMKV/makemkvcon64.exe" -r info disk:0'
+
+    result = subprocess.run(driveCmd, shell=True, text=True, capture_output=True)
+
+    fullTxt = result.stdout
+
+    print("Drive List:")
+    print(result.stdout)
+
+    searchTerm = '1WL","'
+
+    title = find_text_after_search(searchTerm, fullTxt)
+
+    workFold = loc + '/' + title
+
+    os.makedirs(workFold, exist_ok=True)
+
+    # ripAll = '"C:/Program Files (x86)/MakeMKV/makemkvcon64.exe" mkv disc:0 all ' + workFold
+    ripAll = '"C:/Program Files (x86)/MakeMKV/makemkvcon64.exe" mkv disc:0 all --minlength=5000 --progress=1 --out="'+workFold+'"'
+
+
+    result2 = subprocess.run(ripAll, shell=True, text=True, capture_output=True)
+
+    print("Rip Report:")
+    print(result2.stdout)
+
+    # Check the return code to see if the process was successful
+    if result2.returncode == 0:
+        print("Rip was successful.")
+    else:
+        print("Rip failed with return code:", result2.returncode)
+        completed(False, title)
+        return
+
+    numFiles = deleteSpares(workFold)
+
+    if numFiles != 1:
+        print(numFiles+" files remain...Deleting Randomly")
+        randDelete(workFold)
+
+
+    if renameFile(workFold, title):
+        completed(True, title)
+        return
+    else:
+        completed(False, title)
+        return
+
+
+class DiskHandler(FileSystemEventHandler):
+    def on_created(self, event):
+        # Call the processFile function when a disk is inserted
+        processFile()
+
+def is_bluray_drive(drive):
+    try:
+        usage = psutil.disk_usage(drive)
+        return True
+    except:
+        return False
+
+def send_email_aws_ses(message, subject, recipient):
+    # Create a new SES resource and specify a region.
+    ses_client = boto3.client('ses', region_name='us-west-2')  # Replace with your region
+
+    try:
+        # Provide the contents of the email.
+        response = ses_client.send_email(
+            Source='MKV.Notifications@passpals.net',  # Replace with your verified email
+            Destination={
+                'ToAddresses': [recipient],
+            },
+            Message={
+                'Subject': {
+                    'Data': subject,
+                    'Charset': 'UTF-8'
+                },
+                'Body': {
+                    'Text': {
+                        'Data': message,
+                        'Charset': 'UTF-8'
+                    }
+                }
+            }
+        )
+        print("Email sent! Message ID:"),
+        print(response['MessageId'])
+
+    except NoCredentialsError:
+        print("Credentials not available")
+    except PartialCredentialsError:
+        print("Incomplete credentials")
+    except Exception as e:
+        print("Error sending email: ", e)
+
+
+def notify(status, title, level):
+
+    #Will send everyone a status at 1, just matt at 2 and just max at 3
+
+    matt = '7203014754@tmomail.net'
+    max = '7206447060@vtext.net'
+    succ = title+" was ripped successfully!"
+    fail = title+" failed."
+
+    if level==1:
+        if status:
+            send_email_aws_ses(succ,"", matt)
+            send_email_aws_ses(succ, "", max)
+        else:
+            send_email_aws_ses(fail, "", matt)
+            send_email_aws_ses(fail, "", max)
+
+    elif level==2:
+        if status:
+            send_email_aws_ses(succ, "", matt)
+        else:
+            send_email_aws_ses(fail, "", matt)
+
+    elif level==3:
+        if status:
+            send_email_aws_ses(succ, "", max)
+        else:
+            send_email_aws_ses(fail, "", max)
+
+
+def main():
+    # Path to monitor
+    drive_letter = 'D:'
+    event_handler = DiskHandler()
+    observer = Observer()
+    observer.schedule(event_handler, drive_letter, recursive=False)
+    observer.start()
+
+    try:
+        while True:
+            # Check if the drive is a Blu-ray drive
+            if is_bluray_drive(drive_letter):
+                print(f"{drive_letter} is a Blu-ray drive and is ready.")
+            else:
+                print(f"{drive_letter} is not available.")
+            time.sleep(10)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
+
+if __name__ == "__main__":
+    main()

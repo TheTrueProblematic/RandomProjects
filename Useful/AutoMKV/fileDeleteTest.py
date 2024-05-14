@@ -29,6 +29,6 @@ def process_folder(path):
 
 
 # Example usage
-folder_path = 'C:\\path\\to\\your\\folder'  # Replace this with your folder path
+folder_path = 'T:\Shared\MoviesTBC\THE_GREAT_GATSBY'  # Replace this with your folder path
 result = process_folder(folder_path)
 print(f"Result: {result}")
