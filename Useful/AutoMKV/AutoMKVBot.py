@@ -82,6 +82,12 @@ def awaitNew():
         time.sleep(5)  # Check every 5 seconds
     print("Disk ejected. Ready for a new disk.")
 
+def spaceUnderscore(input_string):
+    return input_string.replace(' ', '_')
+
+def underscoreSpace(input_string):
+    return input_string.replace('_', ' ')
+
 def renameFile(folder_path, name):
     # Check if the given path is a directory
     if not os.path.isdir(folder_path):
@@ -132,7 +138,12 @@ def processFile():
 
     title = find_text_after_search(searchTerm, fullTxt)
 
-    workFold = loc + '/' + title
+    title = underscoreSpace(title)
+
+    workFold = loc + '/' + spaceUnderscore(title)
+
+    print(f"Title: {title}")
+    print(f"Work Folder: {workFold}")
 
     os.makedirs(workFold, exist_ok=True)
 
@@ -226,23 +237,23 @@ def notify(status, title, level):
 
     if level==1:
         if status:
-            send_email_aws_ses(succ,"Status: ", matt)
-            send_email_aws_ses(succ, "Status: ", maxn)
+            send_email_aws_ses(succ,"Status", matt)
+            send_email_aws_ses(succ, "Status", maxn)
         else:
-            send_email_aws_ses(fail, "Status: ", matt)
-            send_email_aws_ses(fail, "Status: ", maxn)
+            send_email_aws_ses(fail, "Status", matt)
+            send_email_aws_ses(fail, "Status", maxn)
 
     elif level==2:
         if status:
-            send_email_aws_ses(succ, "Status: ", matt)
+            send_email_aws_ses(succ, "Status", matt)
         else:
-            send_email_aws_ses(fail, "Status: ", matt)
+            send_email_aws_ses(fail, "Status", matt)
 
     elif level==3:
         if status:
-            send_email_aws_ses(succ, "Status: ", maxn)
+            send_email_aws_ses(succ, "Status", maxn)
         else:
-            send_email_aws_ses(fail, "Status: ", maxn)
+            send_email_aws_ses(fail, "Status", maxn)
 
 
 def main():
@@ -256,15 +267,16 @@ def main():
         while True:
             if is_bluray_drive(drive_letter):
                 print(f"{drive_letter} is a Blu-ray drive and is ready. Processing disk...")
+                time.sleep(20)
                 processFile()
                 print("Waiting for next disk...")
             else:
-                print(f"{drive_letter} is not available. Checking again in 10 seconds.")
+                print("No disk inserted. Checking again in 10 seconds.")
             time.sleep(10)
     except KeyboardInterrupt:
         print("Monitoring interrupted by user.")
     finally:
-        print("Monitoring stopped.")
+        print("MKV-Bot stopped.")
 
 if __name__ == "__main__":
     main()
