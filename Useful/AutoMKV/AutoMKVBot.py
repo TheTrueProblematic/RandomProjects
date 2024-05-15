@@ -8,7 +8,7 @@ from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-NotificationLevel = 3
+NotificationLevel = 1
 
 def find_text_after_search(search, text):
     # Find the start of the search term in the text

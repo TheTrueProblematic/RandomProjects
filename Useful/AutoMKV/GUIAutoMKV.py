@@ -9,56 +9,6 @@ from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-# create root window
-root = Tk()
-
-# root window title and dimension
-root.title("Auto MKV")
-# Set geometry(widthxheight)
-root.geometry('700x600')
-
-
-# adding menu bar in root window
-menu = Menu(root)
-item = Menu(menu, tearoff=0)
-item.add_command(label='Max', command=lambda: setLevel(3))
-item.add_command(label='Matt', command=lambda: setLevel(2))
-item.add_command(label='Both', command=lambda: setLevel(1))
-menu.add_cascade(label='Notifications', menu=item)
-root.config(menu=menu)
-
-# adding a large title to the root window
-title = Label(root, text="Auto MKV", font=("Arial", 40), fg="#003366")
-title.grid(column=0, row=0, columnspan=3, pady=30)
-
-# creating a frame to hold the buttons
-button_frame = Frame(root)
-button_frame.grid(column=0, row=1, columnspan=3, pady=30)
-
-# adding Stop and Start buttons to the frame
-stop_btn = Button(button_frame, text="Stop", fg="red", bg="black", font=("Arial", 24), width=10, height=2, command=stop)
-stop_btn.pack(side=LEFT, padx=20)
-
-start_btn = Button(button_frame, text="Start", fg="green", bg="black", font=("Arial", 24), width=10, height=2, command=start)
-start_btn.pack(side=RIGHT, padx=20)
-
-# adding a status window below the buttons
-status_frame = Frame(root, bd=2, relief="solid")
-status_frame.grid(column=0, row=2, columnspan=3, padx=50, pady=30, sticky="ew")
-
-status_label = Label(status_frame, text="", font=("Arial", 18), padx=10, pady=10)
-status_label.pack(fill="both", expand=True)
-
-# Set columns to be stretchable
-root.grid_columnconfigure(0, weight=1)
-root.grid_columnconfigure(1, weight=1)
-root.grid_columnconfigure(2, weight=1)
-
-# Set rows to be stretchable
-root.grid_rowconfigure(0, weight=1)
-root.grid_rowconfigure(1, weight=1)
-root.grid_rowconfigure(2, weight=1)
-
 # Initialize status variable
 guiStatus = 1
 NotificationLevel = 1
@@ -83,8 +33,10 @@ def setLevel(level):
 # function to handle Start button click
 def start():
     global guiStatus
+    global running
     guiStatus = 2
     update_status()
+    running = True
 
 # function to handle Stop button click
 def stop():
@@ -95,19 +47,7 @@ def stop():
     running = False
 
 # function to update the status message
-def update_status():
-    global guiStatus
-    messages = {
-        1: "Ready",
-        2: "Running...",
-        3: "Disk inserted. Processing files...",
-        4: "Stopping...",
-        5: "Notification Status Updated",
-        6: "This is a longer message to make sure that a longer message can still fit."
-    }
-    status_label.config(text=messages.get(guiStatus, "Unknown status"))
 
-update_status()
 
 def find_text_after_search(search, text):
     # Find the start of the search term in the text
@@ -368,6 +308,73 @@ def notify(status, title, level):
             send_email_aws_ses(fail, "Status", maxn)
 
 
+# create root window
+root = Tk()
+
+# root window title and dimension
+root.title("Auto MKV")
+# Set geometry(widthxheight)
+root.geometry('700x600')
+
+
+# adding menu bar in root window
+menu = Menu(root)
+item = Menu(menu, tearoff=0)
+item.add_command(label='Max', command=lambda: setLevel(3))
+item.add_command(label='Matt', command=lambda: setLevel(2))
+item.add_command(label='Both', command=lambda: setLevel(1))
+menu.add_cascade(label='Notifications', menu=item)
+root.config(menu=menu)
+
+# adding a large title to the root window
+title = Label(root, text="Auto MKV", font=("Arial", 40), fg="#003366")
+title.grid(column=0, row=0, columnspan=3, pady=30)
+
+# creating a frame to hold the buttons
+button_frame = Frame(root)
+button_frame.grid(column=0, row=1, columnspan=3, pady=30)
+
+# adding Stop and Start buttons to the frame
+stop_btn = Button(button_frame, text="Stop", fg="red", bg="black", font=("Arial", 24), width=10, height=2, command=stop)
+stop_btn.pack(side=LEFT, padx=20)
+
+start_btn = Button(button_frame, text="Start", fg="green", bg="black", font=("Arial", 24), width=10, height=2, command=start)
+start_btn.pack(side=RIGHT, padx=20)
+
+# adding a status window below the buttons
+status_frame = Frame(root, bd=2, relief="solid")
+status_frame.grid(column=0, row=2, columnspan=3, padx=50, pady=30, sticky="ew")
+
+status_label = Label(status_frame, text="", font=("Arial", 18), padx=10, pady=10)
+status_label.pack(fill="both", expand=True)
+
+# Set columns to be stretchable
+root.grid_columnconfigure(0, weight=1)
+root.grid_columnconfigure(1, weight=1)
+root.grid_columnconfigure(2, weight=1)
+
+# Set rows to be stretchable
+root.grid_rowconfigure(0, weight=1)
+root.grid_rowconfigure(1, weight=1)
+root.grid_rowconfigure(2, weight=1)
+
+
+def update_status():
+    global guiStatus
+    messages = {
+        1: "Ready",
+        2: "Running...",
+        3: "Disk inserted. Processing files...",
+        4: "Stopping...",
+        5: "Notification Status Updated",
+        6: "This is a longer message to make sure that a longer message can still fit."
+    }
+    status_label.config(text=messages.get(guiStatus, "Unknown status"))
+
+update_status()
+
+
+
 def main():
     global running
     global guiStatus
@@ -396,20 +403,26 @@ def main():
                     print("No disk inserted. Checking again in 10 seconds.")
                 time.sleep(10)
             else:
-                if guiStatus != 5 & delayCheck:
-                    guiStatus = 1
-                elif delayCheck:
-                    recordTime = time.time()
-                    delayCheck = False
+                if guiStatus == 5:
+                    if delayCheck:
+                        recordTime = time.time()
+                        delayCheck = False
+                    else:
+                        passed = time.time() - recordTime
+                        if passed > 5:
+                            delayCheck = True
+                            guiStatus = 1
+                            update_status()
                 else:
-                    passed = time.time() - recordTime
-                    if passed > 5:
-                        delayCheck = True
-                        guiStatus = 1
+                    guiStatus = 1
+                    update_status()
+                time.sleep(1)
+
+
     except KeyboardInterrupt:
         print("Monitoring interrupted by user.")
     finally:
-        print("MKV-Bot stopped.")
+        print("AutoMKV stopped.")
 
 
 if __name__ == "__main__":
