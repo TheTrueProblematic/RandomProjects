@@ -5,6 +5,7 @@ import random
 import psutil
 import time
 import boto3
+import threading
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -34,17 +35,18 @@ def setLevel(level):
 def start():
     global guiStatus
     global running
-    guiStatus = 2
-    update_status()
     running = True
+    # print("-- Start --")
+    guiStatus = 7
+    update_status()
 
 # function to handle Stop button click
 def stop():
     global guiStatus
     global running
+    running = False
     guiStatus = 4
     update_status()
-    running = False
 
 # function to update the status message
 
@@ -361,27 +363,28 @@ root.grid_rowconfigure(2, weight=1)
 
 def update_status():
     global guiStatus
+    # print("-- Update Status --")
     messages = {
         1: "Ready",
         2: "Running...",
         3: "Disk inserted. Processing files...",
         4: "Stopping...",
         5: "Notification Status Updated",
-        6: "This is a longer message to make sure that a longer message can still fit."
+        6: "This is a longer message to make sure that a longer message can still fit.",
+        7: "Starting..."
     }
     status_label.config(text=messages.get(guiStatus, "Unknown status"))
 
 update_status()
 
+def gui():
+    root.mainloop()
 
 
-def main():
+def loop():
     global running
     global guiStatus
     global recordTime
-    # Execute Tkinter
-    root.mainloop()
-
     delayCheck = True
 
     # Path to monitor
@@ -392,6 +395,7 @@ def main():
     try:
         # Continuously check if the drive is a Blu-ray drive and is ready
         while True:
+            # print("-- While Loop --")
             if running:
                 guiStatus = 2
                 if is_bluray_drive(drive_letter):
@@ -403,6 +407,7 @@ def main():
                     print("No disk inserted. Checking again in 10 seconds.")
                 time.sleep(10)
             else:
+                # print("-- Else Started --")
                 if guiStatus == 5:
                     if delayCheck:
                         recordTime = time.time()
@@ -417,12 +422,76 @@ def main():
                     guiStatus = 1
                     update_status()
                 time.sleep(1)
+            update_status()
 
 
     except KeyboardInterrupt:
         print("Monitoring interrupted by user.")
     finally:
         print("AutoMKV stopped.")
+
+
+
+def main():
+    global running
+    global guiStatus
+    global recordTime
+    # Execute Tkinter
+    try:
+        t1 = threading.Thread(target=loop, args=())
+        t1.start()
+        gui()
+        t1.join()
+    except KeyboardInterrupt:
+        print("Monitoring interrupted by user.")
+    finally:
+        print("AutoMKV stopped.")
+
+    # delayCheck = True
+    #
+    # # Path to monitor
+    # drive_letter = 'D:'
+    #
+    # print("Monitoring started. Waiting for disk insertion...")
+    #
+    # try:
+    #     # Continuously check if the drive is a Blu-ray drive and is ready
+    #     while True:
+    #         print("-- While Loop --")
+    #         if running:
+    #             guiStatus = 2
+    #             if is_bluray_drive(drive_letter):
+    #                 print(f"{drive_letter} is a Blu-ray drive and is ready. Processing disk...")
+    #                 time.sleep(20)
+    #                 processFile()
+    #                 print("Waiting for next disk...")
+    #             else:
+    #                 print("No disk inserted. Checking again in 10 seconds.")
+    #             time.sleep(10)
+    #         else:
+    #             print("-- Else Started --")
+    #             if guiStatus == 5:
+    #                 if delayCheck:
+    #                     recordTime = time.time()
+    #                     delayCheck = False
+    #                 else:
+    #                     passed = time.time() - recordTime
+    #                     if passed > 5:
+    #                         delayCheck = True
+    #                         guiStatus = 1
+    #                         update_status()
+    #             else:
+    #                 guiStatus = 1
+    #                 update_status()
+    #             time.sleep(1)
+    #         update_status()
+    #
+    #
+    # except KeyboardInterrupt:
+    #     print("Monitoring interrupted by user.")
+    # finally:
+    #     print("AutoMKV stopped.")
+    #     t1.join()
 
 
 if __name__ == "__main__":
