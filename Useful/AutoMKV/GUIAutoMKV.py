@@ -162,13 +162,18 @@ def renameFile(folder_path, name):
 
 def completed(success, title):
     global NotificationLevel
+    global guiStatus
     if success:
         print("Completed successfully.")
         notify(True, title, NotificationLevel)
+        guiStatus = 9
+        update_status()
         awaitNew()
     else:
         print("Failed to complete successfully.")
         notify(False, title, NotificationLevel)
+        guiStatus = 10
+        update_status()
         awaitNew()
 
 
@@ -381,7 +386,9 @@ def update_status():
         5: "Notification Status Updated",
         6: "This is a longer message to make sure that a longer message can still fit.",
         7: "Starting...",
-        8: nameOut
+        8: nameOut,
+        9: "Rip Completed Successfully! Please insert new disk.",
+        10: "Rip Failed..."
     }
     status_label.config(text=messages.get(guiStatus, "Unknown status"))
 
