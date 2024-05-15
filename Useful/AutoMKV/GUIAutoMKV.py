@@ -15,6 +15,7 @@ guiStatus = 1
 NotificationLevel = 1
 running = False
 recordTime = time.time()
+movieName = "Disk"
 
 def levelSetError():
     print("Level Set Error")
@@ -173,6 +174,7 @@ def completed(success, title):
 
 def processFile():
     global guiStatus
+    global movieName
     print("Disk inserted. Processing files...")
 
     guiStatus = 3
@@ -204,6 +206,10 @@ def processFile():
 
     ripAll = '"C:/Program Files (x86)/MakeMKV/makemkvcon64.exe" mkv disc:0 all ' + workFold
     # ripAll = '"C:/Program Files (x86)/MakeMKV/makemkvcon64.exe" mkv disc:0 all --minlength=5000 --progress=1 --out="'+workFold+'"'
+
+    guiStatus = 8
+    movieName = title
+    update_status()
 
     result2 = subprocess.run(ripAll, shell=True, text=True, capture_output=True)
 
@@ -363,6 +369,9 @@ root.grid_rowconfigure(2, weight=1)
 
 def update_status():
     global guiStatus
+    global movieName
+
+    nameOut = movieName+" is ripping. Please Wait..."
     # print("-- Update Status --")
     messages = {
         1: "Ready",
@@ -371,7 +380,8 @@ def update_status():
         4: "Stopping...",
         5: "Notification Status Updated",
         6: "This is a longer message to make sure that a longer message can still fit.",
-        7: "Starting..."
+        7: "Starting...",
+        8: nameOut
     }
     status_label.config(text=messages.get(guiStatus, "Unknown status"))
 
@@ -390,7 +400,7 @@ def loop():
     # Path to monitor
     drive_letter = 'D:'
 
-    print("Monitoring started. Waiting for disk insertion...")
+    print("Program Ready and Waiting...")
 
     try:
         # Continuously check if the drive is a Blu-ray drive and is ready
