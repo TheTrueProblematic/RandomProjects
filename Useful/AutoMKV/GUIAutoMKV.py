@@ -16,6 +16,7 @@ NotificationLevel = 1
 running = False
 recordTime = time.time()
 movieName = "Disk"
+oneFile = True
 
 def levelSetError():
     print("Level Set Error")
@@ -158,6 +159,11 @@ def renameFile(folder_path, name):
     os.rename(file_path, new_file_path)
 
     return True
+
+
+def oneFile(onOff):
+    global oneFile
+    oneFile = onOff
 
 
 def completed(success, title):
@@ -337,6 +343,9 @@ item.add_command(label='Max', command=lambda: setLevel(3))
 item.add_command(label='Matt', command=lambda: setLevel(2))
 item.add_command(label='Both', command=lambda: setLevel(1))
 menu.add_cascade(label='Notifications', menu=item)
+item.add_command(label='On', command=lambda: oneFile(True))
+item.add_command(label='Off', command=lambda: oneFile(False))
+menu.add_cascade(label='One File Mode', menu=item)
 root.config(menu=menu)
 
 # adding a large title to the root window
