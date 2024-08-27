@@ -4,6 +4,7 @@ import shutil
 import random
 import string
 import time
+import openai
 from pathlib import Path
 import win32api
 import win32file
@@ -11,6 +12,10 @@ import pywintypes
 
 # Default working folder
 wrkFolder = r"C:/Foldername/"
+
+open_ai_key = "REDACTED"
+
+totalStatus = 0
 
 # Global variable for stats
 stats = 0
@@ -45,10 +50,54 @@ class AudioFile:
             f.write(result["text"])
 
     def summarize(self, text_path):
-        pass  # To be implemented by the programmer later
+        with open(text_path, 'r') as file:
+            text_content = file.read()
+
+        prompt = f"""Write a summary of the following block of text (which is a transcription of a college lecture). The summary will be in plain text and should start with the class name. Next, it should have a section labeled "To-Do" that will have a list of every to-do that is said in the transcript (such as homework or reading; basically anything to be done outside of the lecture). Finally, it should have a notes section that has 20 or more notes from the lecture. These should include anything and everything important such as content learned and things to remember. Each section in the summary should be separated by a vertical line of - characters. 
+        -Note- the name of the class at the top MUST match one of the following verbatim: [CSCI 2824 Discrete Structures, CSCI 3002 Fundamentals of Human Computer Interaction, CSCI 3287 Design and Analysis of Database Systems, CSCI 3308 Software Development Methods and Tools, CSCI 3403 Introduction to CyberSecurity for a Converged World, HIST 1518 Introduction to South Asian History to 1757]
+
+        Text to Summarize:
+        {text_content}"""
+
+        openai.api_key = open_ai_key
+
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are an assistant who summarizes college lecture transcriptions."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+
+        summary = response['choices'][0]['message']['content']
+
+        with open(self.spath, 'w') as summary_file:
+            summary_file.write(summary)
+
+        return self.spath
 
     def name(self, summ):
-        pass  # To be implemented by the programmer later
+        with open(summ, 'r') as file:
+            summary_content = file.read()
+
+        prompt = f"""Based on the following summary output the name of the class and NOTHING ELSE. The text you output must match one of the following: [CSCI 2824 Discrete Structures, CSCI 3002 Fundamentals of Human Computer Interaction, CSCI 3287 Design and Analysis of Database Systems, CSCI 3308 Software Development Methods and Tools, CSCI 3403 Introduction to CyberSecurity for a Converged World, HIST 1518 Introduction to South Asian History to 1757]
+
+        Summary:
+        {summary_content}"""
+
+        openai.api_key = open_ai_key
+
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are an assistant that identifies the class name from a summary."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+
+        class_name = response['choices'][0]['message']['content'].strip()
+
+        return class_name
 
     def rename(self, new_name):
         # Rename audio file
@@ -82,7 +131,7 @@ class AudioFile:
     def process(self):
         self.stage()
         self.whisper(self.apath, self.tpath)
-        self.spath = self.summarize(self.tpath)
+        self.summarize(self.tpath)
         self.name = self.name(self.spath)
         self.rename(self.name)
         self.sort()
