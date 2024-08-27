@@ -1,0 +1,67 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2761
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+{\*\listtable{\list\listtemplateid1\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{hyphen\}}{\leveltext\leveltemplateid1\'01\uc0\u8259 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{hyphen\}}{\leveltext\leveltemplateid2\'01\uc0\u8259 ;}{\levelnumbers;}\fi-360\li1440\lin1440 }{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{hyphen\}}{\leveltext\leveltemplateid3\'01\uc0\u8259 ;}{\levelnumbers;}\fi-360\li2160\lin2160 }{\listname ;}\listid1}}
+{\*\listoverridetable{\listoverride\listid1\listoverridecount0\ls1}}
+\margl1440\margr1440\vieww23220\viewh13220\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 Write a python bot to match the following:\
+\
+\pard\tx220\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li720\fi-720\pardirnatural\partightenfactor0
+\ls1\ilvl0\cf0 {\listtext	\uc0\u8259 	}Object oriented: This bot should be object oriented.\
+{\listtext	\uc0\u8259 	}Run on windows 11\
+{\listtext	\uc0\u8259 	}It should have a string at the very top that is set by default to \'93C:\\Foldername\\\'94 for the user to rename with the variable name \'93wrkFolder\'94\
+{\listtext	\uc0\u8259 	}It should have a global variable called \'93stats\'94 that starts at 0.\
+{\listtext	\uc0\u8259 	}There should also be a function called \'93display\'94 that the programmer will write later. It should be passed two ints. \
+{\listtext	\uc0\u8259 	}Check whenever a new drive is inserted into the computer. If the drive\'92s name is \'93CRecord\'94 case insensitive (lowercase, title case, uppercase, etc), then it should run the following:\
+\pard\tx940\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li1440\fi-1440\pardirnatural\partightenfactor0
+\ls1\ilvl1\cf0 {\listtext	\uc0\u8259 	}copy all of the files on the drive to a new folder inside wrkFolder called \'93Unprocessed\'94. \
+{\listtext	\uc0\u8259 	}then delete all files on the drive, and eject it. \
+{\listtext	\uc0\u8259 	}any files in the Unprocessed folder that are not audio files should be deleted. \
+{\listtext	\uc0\u8259 	}however many total audio files there are, that many 8 digit random numbers should be generated and put into a list.\
+{\listtext	\uc0\u8259 	}the list should then be sorted from lowest to highest. \
+\ls1\ilvl1{\listtext	\uc0\u8259 	}the audio files should then be renamed to the numbers in the list plus their original file extensions. The files must be renamed in the same order they were originally in as to preserve their order. \
+{\listtext	\uc0\u8259 	}it should now make a new variable called totalStatus that is equal to 6 times the total number of files. \
+{\listtext	\uc0\u8259 	}It should then make a new object for every file remaining inside the Unprocessed folder, and each object should have the following attributes:\
+\pard\tx1660\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li2160\fi-2160\pardirnatural\partightenfactor0
+\ls1\ilvl2\cf0 {\listtext	\uc0\u8259 	}\'93identifier\'94, this int should be the objects random 8 digit number assigned earlier (without the file extension)\
+{\listtext	\uc0\u8259 	}\'93apath\'94, This string variable should be the path to that given object and should have the full system path to it. \
+{\listtext	\uc0\u8259 	}\'93status\'94, this should be a int that is initially set to 0 and increased later. \
+{\listtext	\uc0\u8259 	}\'93tpath\'94, this string should be blank at first.\
+{\listtext	\uc0\u8259 	}\'93name\'94, this string should be blank at first. \
+{\listtext	\uc0\u8259 	}\'93spath\'94, this string should be blank at first. \
+\pard\tx940\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li1440\fi-1440\pardirnatural\partightenfactor0
+\ls1\ilvl1\cf0 {\listtext	\uc0\u8259 	}Each object should also have the following methods:\
+\pard\tx1660\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li2160\fi-2160\pardirnatural\partightenfactor0
+\ls1\ilvl2\cf0 {\listtext	\uc0\u8259 	}\'93stage\'94, this method will make a new text file in Unprocessed that has the same name as this objects \'93identifier\'94 variable with \'93-t\'94 at the end. The path to this text file should be stored in the objects \'93tpath\'94 variable. It should also make a new text file with the same name as this objects \'93identifier\'94 variable with \'93-s\'94 at the end. The path to this file should be stored in the objects \'93spath\'94 variable. \
+{\listtext	\uc0\u8259 	}\'93whisper\'94, this method should be left blank for the programmer to fill out later. It should be passed two variables, \'93audio\'94 and \'93text\'94 which are the paths to the initial audio file and the new text file respectively. \
+{\listtext	\uc0\u8259 	}\'93summarize\'94, this should be passed the path stored in the objects \'93text\'94 variable, and will output a string. The spath variable should be updated to this string. The programmer will complete this later. \
+{\listtext	\uc0\u8259 	}\'93name\'94, this should output a string and should be passed a variable called \'93summ\'94 which is the path to this object\'92s spath file. This method should also be blank for the programmer later. \
+{\listtext	\uc0\u8259 	}\'93rename\'94, this method take a string as an input and should change the name of the audio file, the summary file, and the text file to that string (while not altering their respective file names). It should also update the \'93apath\'94, \'93spath\'94, and \'93tpath\'94 variables to match the new names. \
+{\listtext	\uc0\u8259 	}\'93sort\'94, this method should move all three files to a new folder in the root wrkFolder. The new folder should be named name+identifier\
+{\listtext	\uc0\u8259 	}\'93statup\'94, this method should increase both the object\'92s \'93status\'94 variable by 1 and the global \'93stats\'94 variable by 1. It should also then run the display function while passing it the totalStatus and stats variables.\
+{\listtext	\uc0\u8259 	}\'93process\'94, this is the main method that runs stage, then whisper, then summarize, then name (making sure to also set the objects name variable to the output of the name method). It should then run rename and pass it the \'93name\'94 variable. After running each method it should run statup.\
+\pard\tx940\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li1440\fi-1440\pardirnatural\partightenfactor0
+\ls1\ilvl1\cf0 {\listtext	\uc0\u8259 	}Then it should run process for each object. \
+{\listtext	\uc0\u8259 	}After it runs process for every object, but before running process for the next object it should do the following:\
+\pard\tx1660\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li2160\fi-2160\pardirnatural\partightenfactor0
+\ls1\ilvl2\cf0 {\listtext	\uc0\u8259 	}In the root wrkFolder there will be a variety of folders. Two of these folders will have the exact same, except that one of the names ends in an 8 digit number. The names will be otherwise the same. The program should now move the folder with the 8 digit number into the folder without it. \
+{\listtext	\uc0\u8259 	}increase the \'93stats\'94 variable by 1 and run the display function while passing it the totalStatus and stats variables. \
+\pard\tx940\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li1440\fi-1440\pardirnatural\partightenfactor0
+\ls1\ilvl1\cf0 {\listtext	\uc0\u8259 	}After all of that, the program delete the now empty \'93Unprocessed\'94 folder and will go through each of the remaining folders in wrkFolder and do the following:\
+\pard\tx1660\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li2160\fi-2160\pardirnatural\partightenfactor0
+\ls1\ilvl2\cf0 {\listtext	\uc0\u8259 	}It should rename any folders in these folders that do not start with the word \'93Day\'94. \
+{\listtext	\uc0\u8259 	}It should rename them to be \'93Day \'93+x where x is the next number that is not occupied by another day folder.\
+{\listtext	\uc0\u8259 	}It should do this in alphabetical order for the folders that this applies to one at a time so that they stay in alphabetical order. \
+\pard\tx940\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li1440\fi-1440\pardirnatural\partightenfactor0
+\ls1\ilvl1\cf0 {\listtext	\uc0\u8259 	}Finally it should reset the stats variable to 0 and run display. \
+\pard\tx220\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li720\fi-720\pardirnatural\partightenfactor0
+\ls1\ilvl0\cf0 {\listtext	\uc0\u8259 	}now it will go back to checking, doing nothing if a matching drive is not inserted. \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+Recommendations (at your discretion):\
+Ejecting the Drive: Make sure to handle this with the appropriate library (e.g., win32api for Windows).\
+Drive Detection: Implement a loop that checks for new drives asynchronously or with a scheduled task.\
+}
