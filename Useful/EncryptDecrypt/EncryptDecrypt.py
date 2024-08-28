@@ -5,15 +5,18 @@ import base64
 import pytz
 from datetime import datetime
 
-# Generate a key based on the current hour in UTC (0-23)
+# Global randomizer (between 1 and 32 characters)
+RANDOMIZER = "MySecretRandomizer"  # Replace with your desired randomizer
+
+# Generate a key based on the current hour in UTC (0-23) and the randomizer
 def generate_key(hour=None, key_size=32):
     if hour is None:
         # Get the current hour in UTC
         utc_now = datetime.now(pytz.utc)
         hour = utc_now.hour
     hour_str = str(hour).zfill(2)  # Ensure hour is two digits (e.g., "03" instead of "3")
-    key_source = hour_str.encode()  # Convert hour to bytes
-    key = sha256(key_source).digest()[:key_size]  # Hash the hour and truncate to the key size
+    key_source = (RANDOMIZER + hour_str).encode()  # Combine randomizer and hour, then convert to bytes
+    key = sha256(key_source).digest()[:key_size]  # Hash the combination and truncate to the key size
     return key
 
 # Encrypt the message using the secret key
@@ -40,9 +43,13 @@ if __name__ == "__main__":
     mesD = input("Please enter your message to decrypt: \n")
 
     if mesD != "":
-        # Decrypt the message
-        decrypted_message = decrypt_message(mesD, secret_key)
-        print(f"Decrypted Message: {decrypted_message}")
+        try:
+            # Decrypt the message
+            decrypted_message = decrypt_message(mesD, secret_key)
+            print(f"Decrypted Message: {decrypted_message}")
+
+        except Exception as e:
+            print(f"Error: That is not a valid message")
 
     # Define the message to encrypt
     mesE = input("Please enter your message to encrypt: \n")
@@ -50,5 +57,3 @@ if __name__ == "__main__":
     # Encrypt the message
     encrypted_message = encrypt_message(mesE, secret_key)
     print(f"Encrypted Message: {encrypted_message}")
-
-
