@@ -36,13 +36,19 @@ if __name__ == "__main__":
     secret_key = generate_key()
     print(f"Secret Key: {base64.b64encode(secret_key).decode()}")
 
+    # Define the message to decrypt
+    mesD = input("Please enter your message to decrypt: \n")
+
+    if mesD != "":
+        # Decrypt the message
+        decrypted_message = decrypt_message(mesD, secret_key)
+        print(f"Decrypted Message: {decrypted_message}")
+
     # Define the message to encrypt
-    message = input("Please enter your message: \n")
+    mesE = input("Please enter your message to encrypt: \n")
 
     # Encrypt the message
-    encrypted_message = encrypt_message(message, secret_key)
+    encrypted_message = encrypt_message(mesE, secret_key)
     print(f"Encrypted Message: {encrypted_message}")
 
-    # Decrypt the message
-    decrypted_message = decrypt_message(encrypted_message, secret_key)
-    print(f"Decrypted Message: {decrypted_message}")
+
