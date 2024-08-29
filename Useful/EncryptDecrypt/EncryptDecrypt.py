@@ -35,6 +35,12 @@ def decrypt_message(encrypted_message: str, secret_key: bytes) -> str:
     return decrypted_message.decode()
 
 if __name__ == "__main__":
+    # User can enter a secret shared key to increase security
+    print("Enter a secret key between 1 and 32 characters to encode your message.")
+    key = input("Key: ")
+    if key != "":
+        RANDOMIZER = key
+
     # Generate and print a secret key based on the current hour in UTC
     secret_key = generate_key()
     print(f"Secret Key: {base64.b64encode(secret_key).decode()}")
