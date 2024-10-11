@@ -125,6 +125,37 @@ def main():
                                 ]
                             )
 
+                            # Remove phrases matching 'Adventure Time Presents' or plausible permutations
+                            phrases_to_remove = [
+                                'ADVENTURETIMEPRESENTS',
+                                'ADVENTURETIMELPRESENTS',
+                                'ADVNTURETIMEPRESENTS',
+                                'ADVNTURETIMELPRESENTS',
+                                'ADVENTURE',
+                                'ADVNTURE',
+                                'ADVENTURETIME',
+                                'ADVNTURETIME',
+                                'TIME',
+                                'PRESENTS',
+                                'PRESENT',
+                                'ADVENTURE TIME PRESENTS',
+                                'ADVNTURE TIME PRESENTS',
+                                'ADVENTURE TIME',
+                                'ADVNTURE TIME',
+                                'ADVENTURETIMEPRESENT',
+                                'ADVENTURETIMELPRESENT',
+                                'ADVENTURE TIMEL PRESENTS',
+                                # Add any other plausible permutations
+                            ]
+
+                            # Convert OCR text to uppercase for case-insensitive matching
+                            ocr_text_upper = ocr_text.upper()
+                            # Remove phrases
+                            for phrase in phrases_to_remove:
+                                ocr_text_upper = ocr_text_upper.replace(phrase, '')
+                            # Proceed with the modified text
+                            ocr_text = ocr_text_upper
+
                             # Remove numbers and non-alphabet characters (including space)
                             ocr_text_clean = re.sub(r'[^A-Za-z]', '', ocr_text)
                             # Truncate to first 30 characters
@@ -161,3 +192,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
