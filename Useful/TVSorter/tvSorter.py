@@ -5,7 +5,7 @@ import math
 import shutil
 import random
 import string
-import subprocess
+import cv2
 
 try:
     import pytesseract
@@ -14,16 +14,26 @@ except ImportError:
     print("Please install pytesseract and Pillow before running this script.")
     sys.exit(1)
 
-try:
-    import cv2
-except ImportError:
-    print("Please install opencv-python before running this script.")
-    sys.exit(1)
-
 # Sanitize folder name
 def sanitize_filename(filename):
     # Remove invalid characters
     return re.sub(r'[<>:"/\\|?*]', '', filename)
+
+def preprocess_image(image_path):
+    # Load the image
+    image = cv2.imread(image_path)
+
+    # Convert to grayscale
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # Apply GaussianBlur to reduce noise
+    gray = cv2.GaussianBlur(gray, (5, 5), 0)
+
+    # Apply thresholding to get a binary image
+    _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
+
+    # Save the preprocessed image (overwrite the original image)
+    cv2.imwrite(image_path, thresh)
 
 def main():
     # Get current directory
@@ -45,8 +55,9 @@ def main():
         print("Invalid input for seconds.")
         sys.exit(1)
 
-    # Initialize skip counter
+    # Initialize skip counter and process counter
     skip_counter = 1
+    process_counter = 1
 
     # Iterate over subfolders in root_dir
     for subdir_name in os.listdir(root_dir):
@@ -66,23 +77,14 @@ def main():
             # Convert season_num to two-digit string
             season = f"{int(season_num):02d}"
 
-            # Initialize inprogress index
-            inprogress_index = 1
-
             # Process .mkv files in subdir
             for filename in os.listdir(subdir_path):
                 if filename.lower().endswith('.mkv'):
                     video_path = os.path.join(subdir_path, filename)
                     # Create InProgress folder
-                    while True:
-                        inprogress_folder_name = f"InProgress_{inprogress_index}"
-                        inprogress_path = os.path.join(subdir_path, inprogress_folder_name)
-                        if not os.path.exists(inprogress_path):
-                            os.makedirs(inprogress_path)
-                            inprogress_index += 1
-                            break
-                        else:
-                            inprogress_index += 1
+                    inprogress_folder_name = "InProgress"
+                    inprogress_path = os.path.join(subdir_path, inprogress_folder_name)
+                    os.makedirs(inprogress_path, exist_ok=True)
                     # Move video file into InProgress
                     new_video_path = os.path.join(inprogress_path, filename)
                     shutil.move(video_path, new_video_path)
@@ -119,31 +121,40 @@ def main():
                             image_path = os.path.join(inprogress_path, "RefrenceImage.png")
                             cv2.imwrite(image_path, frame)
                             cap.release()
+
+                            # Preprocess the image
+                            preprocess_image(image_path)
+
+                            # Run OCR
+                            ocr_text = pytesseract.image_to_string(Image.open(image_path))
+
+                            # Remove numbers and non-alphabet characters (including space)
+                            ocr_text_clean = re.sub(r'[^A-Za-z]', '', ocr_text)
+                            # Truncate to first 30 characters
+                            if len(ocr_text_clean) > 30:
+                                ocr_text_clean = ocr_text_clean[:30]
+                            # If OCR fails (empty string), generate 30 random characters
+                            if not ocr_text_clean:
+                                ocr_text_clean = ''.join(random.choices(string.ascii_letters, k=30))
+
+                            # Sanitize the folder name
+                            ocr_folder_name = sanitize_filename(ocr_text_clean)
+                            if not ocr_folder_name:
+                                ocr_folder_name = ''.join(random.choices(string.ascii_letters, k=30))
+
+                            # Append sequential counter to folder name
+                            ocr_folder_name_with_counter = f"{ocr_folder_name}_{process_counter}"
+
+                            # Rename InProgress folder to OCR value with counter
+                            new_folder_path = os.path.join(subdir_path, ocr_folder_name_with_counter)
+                            os.rename(inprogress_path, new_folder_path)
+
+                            process_counter += 1
+
                         else:
                             print(f"Could not read frame {frame_num} from video {renamed_video_path}")
                             cap.release()
                             continue
-
-                        # Run OCR
-                        ocr_text = pytesseract.image_to_string(Image.open(image_path))
-
-                        # Remove numbers and non-alphabet characters (including space)
-                        ocr_text_clean = re.sub(r'[^A-Za-z]', '', ocr_text)
-                        # Truncate to first 30 characters
-                        if len(ocr_text_clean) > 30:
-                            ocr_text_clean = ocr_text_clean[:30]
-                        # If OCR fails (empty string), generate 30 random characters
-                        if not ocr_text_clean:
-                            ocr_text_clean = ''.join(random.choices(string.ascii_letters, k=30))
-
-                        # Sanitize the folder name
-                        ocr_folder_name = sanitize_filename(ocr_text_clean)
-                        if not ocr_folder_name:
-                            ocr_folder_name = ''.join(random.choices(string.ascii_letters, k=30))
-
-                        # Rename InProgress folder to OCR value
-                        new_folder_path = os.path.join(subdir_path, ocr_folder_name)
-                        os.rename(inprogress_path, new_folder_path)
 
                     except Exception as e:
                         print(f"Error processing video {renamed_video_path}: {e}")
