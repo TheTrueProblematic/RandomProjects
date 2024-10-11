@@ -6,34 +6,16 @@ import shutil
 import random
 import string
 import cv2
+import torch
 
-try:
-    import pytesseract
-    from PIL import Image
-except ImportError:
-    print("Please install pytesseract and Pillow before running this script.")
-    sys.exit(1)
+# Import docTR modules
+from doctr.io import DocumentFile
+from doctr.models import ocr_predictor
 
 # Sanitize folder name
 def sanitize_filename(filename):
     # Remove invalid characters
     return re.sub(r'[<>:"/\\|?*]', '', filename)
-
-def preprocess_image(image_path):
-    # Load the image
-    image = cv2.imread(image_path)
-
-    # Convert to grayscale
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-    # Apply GaussianBlur to reduce noise
-    gray = cv2.GaussianBlur(gray, (5, 5), 0)
-
-    # Apply thresholding to get a binary image
-    _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
-
-    # Save the preprocessed image (overwrite the original image)
-    cv2.imwrite(image_path, thresh)
 
 def main():
     # Get current directory
@@ -59,6 +41,12 @@ def main():
     skip_counter = 1
     process_counter = 1
 
+    # Set device to GPU if available
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+    # Initialize OCR model
+    predictor = ocr_predictor(pretrained=True, detect_language=False).to(device)
+
     # Iterate over subfolders in root_dir
     for subdir_name in os.listdir(root_dir):
         subdir_path = os.path.join(root_dir, subdir_name)
@@ -81,8 +69,8 @@ def main():
             for filename in os.listdir(subdir_path):
                 if filename.lower().endswith('.mkv'):
                     video_path = os.path.join(subdir_path, filename)
-                    # Create InProgress folder
-                    inprogress_folder_name = "InProgress"
+                    # Create InProgress folder with sequential number
+                    inprogress_folder_name = f"InProgress_{process_counter}"
                     inprogress_path = os.path.join(subdir_path, inprogress_folder_name)
                     os.makedirs(inprogress_path, exist_ok=True)
                     # Move video file into InProgress
@@ -122,11 +110,20 @@ def main():
                             cv2.imwrite(image_path, frame)
                             cap.release()
 
-                            # Preprocess the image
-                            preprocess_image(image_path)
-
-                            # Run OCR
-                            ocr_text = pytesseract.image_to_string(Image.open(image_path))
+                            # Load image with docTR
+                            doc = DocumentFile.from_images(image_path)
+                            # Perform OCR
+                            result = predictor(doc)
+                            # Get text from result
+                            ocr_text = ' '.join(
+                                [
+                                    word.value
+                                    for page in result.pages
+                                    for block in page.blocks
+                                    for line in block.lines
+                                    for word in line.words
+                                ]
+                            )
 
                             # Remove numbers and non-alphabet characters (including space)
                             ocr_text_clean = re.sub(r'[^A-Za-z]', '', ocr_text)
@@ -148,7 +145,6 @@ def main():
                             # Rename InProgress folder to OCR value with counter
                             new_folder_path = os.path.join(subdir_path, ocr_folder_name_with_counter)
                             os.rename(inprogress_path, new_folder_path)
-
                             process_counter += 1
 
                         else:
