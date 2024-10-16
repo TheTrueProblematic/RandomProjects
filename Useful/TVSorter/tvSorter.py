@@ -91,6 +91,18 @@ def main():
                             print(f"Could not get frame rate for video {renamed_video_path}")
                             cap.release()
                             continue
+
+                        duration_sec = total_frames / fps
+
+                        if duration_sec < 600 or duration_sec > 780:
+                            cap.release()
+                            # Rename the InProgress folder to "X_#"
+                            x_folder_name = f"X_{process_counter}"
+                            x_folder_path = os.path.join(subdir_path, x_folder_name)
+                            os.rename(inprogress_path, x_folder_path)
+                            process_counter += 1
+                            continue
+
                         # Calculate frame number
                         frame_num = math.ceil(fps * sec)
                         if frame_num > total_frames:
@@ -192,4 +204,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
