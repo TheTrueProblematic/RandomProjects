@@ -6,11 +6,12 @@ Run this script inside the folder you want to clean up.
 It will:
 - Look only at MKV files in the current folder
 - Detect video resolution using ffprobe or mediainfo
-- Move any non HD video to a subfolder named DVD
-  HD means height >= 720 pixels. DVD rips are usually 480 or 576 tall.
+- Classify as HD if height > 768 or width >= 1080, otherwise move to a subfolder named DVD
+  This explicitly treats 720x480 as DVD
+- Create the DVD folder if it does not exist and reuse it if it does
+- Never touch subfolders
 
 Optional CLI flags:
-  --threshold 720      Change the HD height threshold if you want
   --dry-run            Show what would happen without moving files
   --path "C:\Movies"   Process a specific folder instead of the current one
 """
@@ -92,7 +93,6 @@ def get_resolution_with_ffprobe(ffprobe: str, file: Path) -> Optional[Tuple[int,
 
 
 def get_resolution_with_mediainfo(mediainfo: str, file: Path) -> Optional[Tuple[int, int]]:
-    # Use JSON output if available. Some builds use --Output=JSON, others use --Output=JSON
     cmd = [mediainfo, "--Output=JSON", str(file)]
     LOG.debug(f"Running mediainfo: {' '.join(cmd)}")
     try:
@@ -129,10 +129,19 @@ def get_video_resolution(file: Path, ffprobe: Optional[str], mediainfo: Optional
     return None
 
 
-def is_hd(width: int, height: int, threshold_height: int) -> bool:
-    # Treat orientation robustly. Height is the larger dimension for some rotated encodes.
-    h = max(width, height)
-    return h >= threshold_height
+def is_hd(width: int, height: int) -> bool:
+    """
+    HD rule:
+    - True if height > 768 or width >= 1080
+    - False otherwise
+    """
+    result = (height > 768) or (width >= 1080)
+    LOG.debug(
+        f"HD check for {width}x{height}: "
+        f"height>768={'yes' if height > 768 else 'no'} or width>=1080={'yes' if width >= 1080 else 'no'} "
+        f"-> {'HD' if result else 'DVD'}"
+    )
+    return result
 
 
 def ensure_dir(path: Path) -> None:
@@ -169,7 +178,7 @@ def move_file(src: Path, dst_dir: Path, dry_run: bool = False) -> Path:
     return target
 
 
-def scan_folder(folder: Path, threshold: int, dry_run: bool) -> None:
+def scan_folder(folder: Path, dry_run: bool) -> None:
     LOG.info(f"Starting scan in folder: {folder}")
     ffprobe, mediainfo = detect_tools()
     if not ffprobe and not mediainfo:
@@ -204,10 +213,13 @@ def scan_folder(folder: Path, threshold: int, dry_run: bool) -> None:
         width, height = res
         LOG.info(f"{entry.name} resolution detected as {width}x{height}")
 
-        if is_hd(width, height, threshold):
-            LOG.info(f"{entry.name} is HD based on threshold {threshold}px. Leaving it in place.")
+        if is_hd(width, height):
+            LOG.info(f"{entry.name} meets HD rule height>768 or width>=1080. Leaving it in place.")
             skipped += 1
             continue
+
+        if (width == 720 and height == 480) or (width == 480 and height == 720):
+            LOG.info(f"{entry.name} is exactly 720x480 which is explicitly treated as DVD.")
 
         try:
             move_file(entry, dvd_dir, dry_run=dry_run)
@@ -227,7 +239,6 @@ def scan_folder(folder: Path, threshold: int, dry_run: bool) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Move non HD MKV files to a DVD subfolder.")
     parser.add_argument("--path", type=str, default=".", help="Folder to process. Default is current folder.")
-    parser.add_argument("--threshold", type=int, default=720, help="HD height threshold. Default is 720.")
     parser.add_argument("--dry-run", action="store_true", help="Print actions without moving files.")
     args = parser.parse_args()
 
@@ -238,7 +249,7 @@ def main() -> None:
         LOG.error(f"Path is not a folder or does not exist: {folder}")
         sys.exit(1)
 
-    scan_folder(folder, threshold=args.threshold, dry_run=args.dry_run)
+    scan_folder(folder, dry_run=args.dry_run)
 
 
 if __name__ == "__main__":
